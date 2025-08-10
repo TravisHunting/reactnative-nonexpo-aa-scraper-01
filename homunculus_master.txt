@@ -92,7 +92,14 @@ RESULT SUMMARY # 3:
   - The `WebView` is now automatically hidden and closed at the appropriate times, improving the user experience.
   - The download process is now more user-friendly and less intrusive.
 
-Errors:
+PROMPT # 4:
+This is a React Native Android app.
+When this app is complete, it will function as a web scraper and download assistant for ebooks and audiobooks.
+Store a brief summary of [actions taken, reason for actions, action outcomes] in scraper2/homunculus_master.txt, under the correct "RESULT SUMMARY" section for this prompt.
+
+Complete the following tasks:
+
+Fix Errors:
 Instead of downloading succesfully, the notification reads "0# Download unsuccessful".
 Investigate if the download is failing because the webview is being closed prematurely.
 Toasts not appearing on screen, or not appearing long enough for the user to see them.
