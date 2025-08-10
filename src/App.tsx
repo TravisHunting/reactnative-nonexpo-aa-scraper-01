@@ -1,13 +1,12 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import notifee, { AndroidImportance } from '@notifee/react-native';
 import { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   Image,
-  PermissionsAndroid,
+  NativeModules,
   Platform,
   StyleSheet,
   Text,
@@ -16,9 +15,10 @@ import {
   useColorScheme,
   View
 } from 'react-native';
-import RNFS from 'react-native-fs';
 import Toast from 'react-native-root-toast';
 import { WebView } from 'react-native-webview';
+
+const { FileDownloader } = NativeModules;
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,112 +72,17 @@ function App() {
   };
 
   const downloadFile = async (url: string) => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          {
-            title: 'Storage Permission Required',
-            message: 'This app needs access to your storage to download files.',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          },
-        );
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          Toast.show('Storage permission denied');
-          return;
-        }
-      } catch (err) {
-        console.warn(err);
-        return;
-      }
-    }
-
-    const fileName = url.split('/').pop();
-    const downloadDest = `${RNFS.DownloadDirectoryPath}/${fileName}`;
-
-    const channelId = await notifee.createChannel({
-      id: 'download',
-      name: 'Download',
-      importance: AndroidImportance.HIGH,
-    });
-
-    await notifee.displayNotification({
-      id: fileName,
-      title: `Downloading ${fileName}`,
-      body: 'Download in progress',
-      android: {
-        channelId,
-        progress: {
-          max: 100,
-          current: 0,
-        },
-        asForegroundService: true,
-        ongoing: true,
-        autoCancel: false,
-      },
-    });
-
-    const options: RNFS.DownloadOptions = {
-      fromUrl: url,
-      toFile: downloadDest,
-      background: true,
-      progress: (res) => {
-        const progress = (res.bytesWritten / res.contentLength) * 100;
-        notifee.displayNotification({
-          id: fileName,
-          title: `Downloading ${fileName}`,
-          body: `${Math.round(progress)}%`,
-          android: {
-            channelId,
-            progress: {
-              max: 100,
-              current: Math.round(progress),
-            },
-            asForegroundService: true,
-            ongoing: true,
-            autoCancel: false,
-          },
-        });
-      },
-    };
-
     try {
-      const job = RNFS.download(options);
-      const result = await job.promise;
-
-      if (result.statusCode === 200) {
-        await notifee.displayNotification({
-          id: fileName,
-          title: `Download Complete`,
-          body: fileName,
-          android: {
-            channelId,
-            actions: [
-              {
-                title: 'Open',
-                pressAction: {
-                  id: 'open',
-                },
-              },
-            ],
-          },
-        });
-        Toast.show(`Downloaded ${fileName} to Downloads folder!`);
+      const fileName = url.split('/').pop()?.split('?')[0] || 'downloaded_file';
+      if (Platform.OS === 'android') {
+        await FileDownloader.downloadFile(url, fileName);
+        Toast.show(`Downloading ${fileName} to Downloads folder!`);
       } else {
-        throw new Error(`Server returned status code ${result.statusCode}`);
+        // iOS implementation would go here
+        Toast.show('Downloads are only supported on Android for now.');
       }
     } catch (error) {
       console.error(error);
-      await notifee.displayNotification({
-        id: fileName,
-        title: 'Download Failed',
-        body: `Failed to download ${fileName}`,
-        android: {
-          channelId,
-        },
-      });
       Toast.show('Download failed');
     }
   };
@@ -215,21 +120,46 @@ function App() {
     }
   `;
 
-  // Write this javascript into the DOM directly so annas archive doesn't fuck with it (and to facilitate debugging)
   const downloadNowJs = `
-    window.__RNWebViewDebug = function() {
-      const downloadInterval = setInterval(() => {
-        const downloadButton = document.querySelector('p.mb-4.text-xl.font-bold a');
-        if (downloadButton) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({
-            type: 'download-link',
-            payload: downloadButton.href
-          }));
-          clearInterval(downloadInterval);
-        }
-      }, 1000);
-    };
-    window.__RNWebViewDebug();
+    // Annas Archive tries to detect scraping and will sometimes serve a different page.
+    // This is a more robust way to get the download link.
+    const findDownloadLink = () => {
+      // First, try the original selector
+      let downloadButton = document.querySelector('p.mb-4.text-xl.font-bold a');
+      if (downloadButton) {
+        return downloadButton.href;
+      }
+      // If that fails, try to find any link that contains "cdn" and the filename from the url.
+      const urlParams = new URLSearchParams(window.location.search);
+      const filename = urlParams.get('id'); // This is a guess, might need adjustment
+      if(filename) {
+          const links = Array.from(document.querySelectorAll('a'));
+          const cdnLink = links.find(a => a.href.includes('cdn') && a.href.includes(filename));
+          if (cdnLink) {
+            return cdnLink.href;
+          }
+      }
+      // As a last resort, find the most likely download link on the page
+      const allLinks = Array.from(document.querySelectorAll('a'));
+      const downloadKeywords = ['download', '.zip', '.epub', '.pdf', '.mobi'];
+      for(const link of allLinks) {
+          if(downloadKeywords.some(keyword => link.href.includes(keyword))) {
+              return link.href;
+          }
+      }
+      return null;
+    }
+
+    const downloadInterval = setInterval(() => {
+      const downloadLink = findDownloadLink();
+      if (downloadLink) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'download-link',
+          payload: downloadLink
+        }));
+        clearInterval(downloadInterval);
+      }
+    }, 1000);
 
     const timerInterval = setInterval(() => {
       const timer = document.querySelector('span.js-partner-countdown');
