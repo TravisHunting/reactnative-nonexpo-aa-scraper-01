@@ -1,0 +1,20 @@
+Prerequisites:
+Android Studio
+JDK 17
+Environment variables / PATH entries for the above
+
+Getting started without Expo
+https://reactnative.dev/docs/getting-started-without-a-framework
+
+# Start metro server, automatically load app into running android emulator:
+npx react-native run-android
+
+If you’re working with a plain React Native project (not Expo), npx react-native run-android is generally the easiest and most straightforward command to build and run your app on a connected Android device or emulator.
+What it does under the hood:
+Builds the app (gradlew assembleDebug),
+Installs the APK on your device/emulator,
+Launches the app automatically.
+
+# full compile + test + package process.
+# APK file(s) land here: android/app/build/outputs/apk/
+cd android && .\gradlew build
