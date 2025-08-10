@@ -351,3 +351,9 @@ RESULT SUMMARY # 10:
 Hotfix:
 The overlay is moveable now, but instead of displaying the webview, just displays a small grey rectangle.
 
+Hotfix:
+The overlay opens succesfully at the right size and displays the webview. 
+However, these things need fixed:
+When the overlay opens an error is thrown in App.tsx, at const data = JSON.parse(event.nativeEvent.data); 
+The error is Cannot read property 'data' of undefined.
+The overlay webview also does not shrink or successfully use the MediaStore API to download the file when the download link becomes available.
