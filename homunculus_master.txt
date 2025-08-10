@@ -9,3 +9,20 @@ IMPORTANT: Do not introduce any dependencies on Expo.
 Store a brief summary of [actions taken, reason for actions, action outcomes] in scraper2/homunculus_master.txt, under the correct "RESULT SUMMARY" section for this prompt.
 
 RESULT SUMMARY # 1:
+RESULT SUMMARY:
+- **Actions Taken**:
+  - Copied business logic from `scraper1\app\(tabs)\index.tsx` to `scraper2\App.tsx`.
+  - Created `src` directory in `scraper2` to follow standard React Native project structure.
+  - Re-created themed components (`ThemedText`, `ThemedView`, `Colors.ts`, `useThemeColor.ts`) from `scraper1` into `scraper2/src`.
+  - Installed necessary dependencies (`@notifee/react-native`, `react-native-fs`, `react-native-root-toast`, `react-native-webview`, `babel-plugin-module-resolver`) in `scraper2`.
+  - Configured `babel.config.js` and `tsconfig.json` in `scraper2` to support path aliases.
+  - Moved `App.tsx` to `scraper2/src/` and updated `index.js` to reflect the new path.
+- **Reason for Actions**:
+  - The goal was to port the functionality of an Expo-based app to a non-Expo app, ensuring that all Expo-specific code was removed and replaced with equivalent non-Expo solutions.
+  - The project structure was updated to follow best practices for React Native projects.
+  - Dependencies were added to support the functionality of the ported code.
+  - Path aliases were configured to maintain clean and consistent import paths.
+- **Action Outcomes**:
+  - The business logic from `scraper1` is now present in `scraper2`.
+  - The `scraper2` app is now a non-Expo app with the same functionality as the `scraper1` app.
+  - The `scraper2` project now has a more standard directory structure.
