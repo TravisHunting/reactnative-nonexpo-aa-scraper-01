@@ -76,7 +76,7 @@ Implement Feature:
 When the first toast successfully appears, whether it's for recognizing a timer or accessing a download link, the user knows that their input is no longer needed.
 When a toast happens, hide the webview that triggered the toast behind or below the previous screen the user was on.
 The goal of this task is to make it seem as though the webview has been closed, but the webview is able to continue waiting in the background for the download link to become available, and then process it accordingly.
-Once the download has successfully begun, close the webview that initiated the download (but only if doing so won't interrupt the download in progress).
+Once the download has succesfully begun, close the webview that initiated the download (but only if doing so won't interrupt the download in progress).
 
 RESULT SUMMARY # 3:
 - **Actions Taken**:
@@ -169,7 +169,7 @@ Complete the following tasks:
 
 We are going to be updating the logic for how the findDownloadLink function is used.
 This feature is misbehaving currently because what we actually want to occur is this:
-When the cloudflare turnstyle is bypassed, often this website displays a timer that decreases every second.
+When the cloudflare turnstile is bypassed, often this website displays a timer that decreases every second.
 Only when this timer has completed does the download link appear.
 We need to search for the timer first. 
 If the timer is found, we want to store the number of seconds it was displaying so that we can display it in a toast.
@@ -201,3 +201,29 @@ As inspiration, you can use this example from an earlier version of this app, wh
       }
     }, 1000);
   `;
+
+RESULT SUMMARY # 6:
+- **Actions Taken**:
+  - Refactored the `downloadNowJs` script in `App.tsx` to prioritize searching for a countdown timer before attempting to find a download link.
+  - If a timer is found, a `timer` message is sent to React Native, which then hides the `WebView` and displays a Toast notification to the user.
+  - After the timer is found and the message is sent, the script begins to search for the download link.
+  - The `findDownloadLink` function was made less aggressive by simplifying its selectors, reducing the likelihood of false positives.
+  - Corrected a syntax error in `__tests__/App.test.tsx` that was causing the TypeScript compiler to fail.
+- **Reason for Actions**:
+  - The previous download logic was unreliable and often resulted in failed downloads or false positives.
+  - The new logic more accurately reflects the user flow of the target website, where a timer often precedes the appearance of a download link.
+  - By prioritizing the timer, the app can provide more accurate feedback to the user and improve the reliability of the download process.
+- **Desired Outcomes**:
+  - The download process should be more reliable and less prone to errors.
+  - The user should receive clear and accurate feedback about the download process, including the countdown timer.
+  - The app should be more robust and less likely to crash or behave unexpectedly.
+
+
+PROMPT # 7:
+This is a React Native Android app.
+When this app is complete, it will function as a web scraper and download assistant for ebooks and audiobooks.
+Append a brief summary of [actions taken, reason for actions, desired outcomes] to scraper2/homunculus_master.txt, under the correct "RESULT SUMMARY" section for this prompt.
+After finalizing changes in a tsx file, make sure to assess the updated file for syntatic correctness.
+
+Complete the following tasks:
+

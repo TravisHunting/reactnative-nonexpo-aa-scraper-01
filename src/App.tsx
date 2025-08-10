@@ -84,44 +84,15 @@ function App() {
     try {
       const fileName = url.split('/').pop()?.split('?')[0] || 'downloaded_file';
       if (Platform.OS === 'android') {
-        const downloadId = await FileDownloader.downloadFile(url, fileName);
-        
-        // Show toast notification after a delay to ensure it's visible
-        setTimeout(() => {
-          Toast.show(`Downloading ${fileName} to Downloads folder!`, { 
-            duration: Toast.durations.LONG,
-            position: Toast.positions.CENTER 
-          });
-        }, 1500);
-        
-        // Close the webview after download starts
-        setTimeout(() => {
-          setSelectedUrl(null);
-          setIsDownloadingFromUrl(false);
-          setDownloadInProgress(false);
-        }, 3000);
-        
-        // Monitor download completion (simplified version)
-        setTimeout(() => {
-          Toast.show(`Download of ${fileName} completed!`, { 
-            duration: Toast.durations.LONG,
-            position: Toast.positions.CENTER 
-          });
-        }, 10000); // Assume download takes about 10 seconds
-        
+        await FileDownloader.downloadFile(url, fileName);
+        Toast.show(`Downloading ${fileName} to Downloads folder!`, { duration: Toast.durations.LONG });
       } else {
         // iOS implementation would go here
         Toast.show('Downloads are only supported on Android for now.');
       }
     } catch (error) {
       console.error(error);
-      setTimeout(() => {
-        Toast.show('Download failed', { 
-          duration: Toast.durations.LONG,
-          position: Toast.positions.CENTER 
-        });
-      }, 1000);
-      setDownloadInProgress(false);
+      Toast.show('Download failed');
     }
   };
 
@@ -159,32 +130,12 @@ function App() {
   `;
 
   const downloadNowJs = `
-    // Annas Archive tries to detect scraping and will sometimes serve a different page.
-    // This is a more robust way to get the download link.
     const findDownloadLink = () => {
-      // First, try the original selector
       let downloadButton = document.querySelector('p.mb-4.text-xl.font-bold a');
       if (downloadButton) {
         return downloadButton.href;
       }
-      // If that fails, try to find any link that contains "cdn" and the filename from the url.
-      const urlParams = new URLSearchParams(window.location.search);
-      const filename = urlParams.get('id'); // This is a guess, might need adjustment
-      if(filename) {
-          const links = Array.from(document.querySelectorAll('a'));
-          const cdnLink = links.find(a => a.href.includes('cdn') && a.href.includes(filename));
-          if (cdnLink) {
-            return cdnLink.href;
-          }
-      }
-      // As a last resort, find the most likely download link on the page
-      const allLinks = Array.from(document.querySelectorAll('a'));
-      const downloadKeywords = ['download', '.zip', '.epub', '.pdf', '.mobi'];
-      for(const link of allLinks) {
-          if(downloadKeywords.some(keyword => link.href.includes(keyword))) {
-              return link.href;
-          }
-      }
+
       return null;
     }
 
