@@ -30,7 +30,7 @@ class FileDownloaderModule(reactContext: ReactApplicationContext) : ReactContext
             val downloadManager = reactApplicationContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             val downloadId = downloadManager.enqueue(request)
             
-            promise.resolve(downloadId)
+            promise.resolve(downloadId.toString())
         } catch (e: Exception) {
             promise.reject("DOWNLOAD_ERROR", e)
         }

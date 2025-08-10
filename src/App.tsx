@@ -27,6 +27,7 @@ function App() {
   const [scraping, setScraping] = useState(false);
   const [currentResultIndex, setCurrentResultIndex] = useState(0);
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
+  const [isDownloadingFromUrl, setIsDownloadingFromUrl] = useState(false);
   const [clickedLinks, setClickedLinks] = useState<string[]>([]);
   const webviewRef = useRef<WebView>(null);
   const colorScheme = useColorScheme();
@@ -54,8 +55,10 @@ function App() {
         setScraping(false);
       }
     } else if (data.type === 'download-link') {
+      setIsDownloadingFromUrl(true);
       downloadFile(data.payload);
     } else if (data.type === 'timer') {
+      setIsDownloadingFromUrl(true);
       try {
         Toast.show(`Download will be ready in ${data.payload} seconds`, {
           duration: 3000,
@@ -77,6 +80,8 @@ function App() {
       if (Platform.OS === 'android') {
         await FileDownloader.downloadFile(url, fileName);
         Toast.show(`Downloading ${fileName} to Downloads folder!`);
+        setSelectedUrl(null);
+        setIsDownloadingFromUrl(false);
       } else {
         // iOS implementation would go here
         Toast.show('Downloads are only supported on Android for now.');
@@ -215,7 +220,10 @@ function App() {
   if (selectedUrl) {
     return (
       <View style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 40 : 16 }}>
-        <TouchableOpacity onPress={() => setSelectedUrl(null)}>
+        <TouchableOpacity onPress={() => {
+          setSelectedUrl(null);
+          setIsDownloadingFromUrl(false);
+        }}>
           <Text style={{ color: Colors[colorScheme ?? 'light'].tint, padding: 10 }}>Close</Text>
         </TouchableOpacity>
         <WebView
@@ -224,6 +232,7 @@ function App() {
           injectedJavaScript={downloadNowJs}
           onMessage={handleMessage}
           webviewDebuggingEnabled={true}
+          style={isDownloadingFromUrl ? { width: 0, height: 0, opacity: 0 } : {}}
         />
       </View>
     );
