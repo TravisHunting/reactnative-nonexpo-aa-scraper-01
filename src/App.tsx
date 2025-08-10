@@ -112,7 +112,7 @@ function App() {
       }
 
       try {
-          await OverlayWindow.createOverlay(url);
+          await OverlayWindow.createOverlay(url, downloadNowJs);
           setClickedLinks([...clickedLinks, url]);
       } catch (e) {
           console.error(e);
@@ -152,6 +152,42 @@ function App() {
     } else {
       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'slow-link', payload: 'Not found', index: ${index} }));
     }
+  `;
+
+  const downloadNowJs = `
+    const timerCheckInterval = setInterval(() => {
+      const timer = document.querySelector('span.js-partner-countdown');
+      if (timer) {
+        window.Android.postMessage(JSON.stringify({ type: 'timer', payload: timer.innerText }));
+        clearInterval(timerCheckInterval);
+        // Now that we found the timer, let's wait for the download link
+        const downloadLinkCheckInterval = setInterval(() => {
+          const downloadButton = document.querySelector('p.mb-4.text-xl.font-bold a');
+          if (downloadButton) {
+            window.Android.postMessage(JSON.stringify({
+              type: 'download-link',
+              payload: downloadButton.href
+            }));
+            clearInterval(downloadLinkCheckInterval);
+          }
+        }, 1000);
+      } else {
+        // If no timer is found after 5 seconds, try to find the download link directly
+        const downloadButton = document.querySelector('p.mb-4.text-xl.font-bold a');
+        if (downloadButton) {
+          window.Android.postMessage(JSON.stringify({
+            type: 'download-link',
+            payload: downloadButton.href
+          }));
+          clearInterval(timerCheckInterval);
+        }
+      }
+    }, 1000);
+
+    // Stop checking for the timer after 5 seconds
+    setTimeout(() => {
+        clearInterval(timerCheckInterval);
+    }, 5000);
   `;
 
   

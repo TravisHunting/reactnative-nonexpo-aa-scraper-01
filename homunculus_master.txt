@@ -308,3 +308,16 @@ Fix Bugs:
 I am attempting to use a system overlay to display the webview in which the user will bypass a cloudflare turnstile.
 This overlay is not appearing on the screen.
 It may be possible that the app is clearing its state, resetting, and minimizing itself prematurely, preventing the overlay from loading. Investigate this possibility.
+
+RESULT SUMMARY # 9:
+- **Actions Taken**:
+  - Investigated the issue of the `SYSTEM_ALERT_WINDOW` overlay not appearing and determined that the `WebView` was not being created on the main UI thread.
+  - Updated the `OverlayWindowModule.kt` to use `runOnUiThread` to ensure that all UI operations are performed on the main thread.
+  - Added the `downloadNowJs` script to the overlay `WebView` to ensure that it can communicate with the React Native app.
+  - Modified the `createOverlay` method in the native module to accept the `injectedJavaScript` as a parameter.
+- **Reason for Actions**:
+  - The overlay was not appearing because UI operations were being performed on a background thread, which is not allowed in Android.
+  - The `downloadNowJs` script was missing from the overlay `WebView`, which prevented it from sending messages to the React Native app.
+- **Desired Outcomes**:
+  - The `SYSTEM_ALERT_WINDOW` overlay should now appear correctly, allowing the user to interact with the Cloudflare turnstile.
+  - The overlay `WebView` should be able to communicate with the React Native app, allowing the download process to be initiated.
