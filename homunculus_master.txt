@@ -1,0 +1,11 @@
+PROMPT # 1:
+In the folder 'scraper2' there is a freshly bootstrapped React Native android app (NOT USING EXPO).
+In the folder 'scraper1' there is a React Native android app (USING EXPO).
+
+I want to copy the business logic from "scraper1\app\(tabs)\index.tsx" and port it into the app inside the 'scraper2' folder.
+Do this in such a way that proper conventions are used and so that anything that requires Expo (packages or otherwise) is converted into a non-expo outcome.
+IMPORTANT: Do not introduce any dependencies on Expo.
+
+Store a brief summary of actions taken and outcomes in scraper2/homunculus_master.txt, under the correct "RESULT SUMMARY" section for this prompt.
+
+RESULT SUMMARY # 1:
