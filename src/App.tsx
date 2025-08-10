@@ -48,7 +48,12 @@ function App() {
   
 
   const handleMessage = (event: any) => {
-    const data = JSON.parse(event.nativeEvent.data);
+    let data;
+    if (event.nativeEvent) {
+      data = JSON.parse(event.nativeEvent.data);
+    } else {
+      data = JSON.parse(event);
+    }
     if (data.type === 'initial-results') {
       setResults(data.payload);
       setLoading(false);
