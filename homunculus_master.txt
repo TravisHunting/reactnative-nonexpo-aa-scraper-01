@@ -218,7 +218,6 @@ RESULT SUMMARY # 6:
   - The user should receive clear and accurate feedback about the download process, including the countdown timer.
   - The app should be more robust and less likely to crash or behave unexpectedly.
 
-
 PROMPT # 7:
 This is a React Native Android app.
 When this app is complete, it will function as a web scraper and download assistant for ebooks and audiobooks.
@@ -236,3 +235,35 @@ When the user clicks the slow download link, do the following:
 2. Minimize the main app context, and open the slow download link in a webview in the system alert window.
 
 Once the user bypasses the cloudflare turnstile in the webview, and the timer or download link is detected, the alert window should shrink to a small square.
+
+RESULT SUMMARY # 7:
+- **Actions Taken**:
+  - Implemented a new native module (`OverlayWindowModule.kt`) to create and manage a `SYSTEM_ALERT_WINDOW` overlay.
+  - The overlay contains a `WebView` that can run in the background, ensuring that the download process continues even if the user navigates away from the app.
+  - When a user clicks a "slow download" link, the app now creates an overlay `WebView` to handle the download process, while the main app UI resets to the search screen.
+  - The overlay window shrinks to a small square when a timer or download link is detected, providing a visual cue to the user without interrupting their workflow.
+  - The `SYSTEM_ALERT_WINDOW` permission was added to the `AndroidManifest.xml`.
+  - The React Native code was updated to use the new `OverlayWindow` module, including adding a `DeviceEventEmitter` to handle messages from the overlay `WebView`.
+- **Reason for Actions**:
+  - The previous implementation of the download process was not robust and would fail if the user navigated away from the app.
+  - The `SYSTEM_ALERT_WINDOW` overlay provides a way to keep the `WebView` running in the background, ensuring that the download process can complete successfully.
+  - The new implementation provides a better user experience by allowing the user to continue using the app while a download is in progress.
+- **Desired Outcomes**:
+  - The download process should now be robust and continue to run even if the user navigates away from the app.
+  - The user should be able to continue using the app while a download is in progress.
+  - The app should be more resilient to user actions and less prone to download failures.
+
+Hotfix 1:
+After the latest changes, when I perform a search the loading icon appears but results are never retrieved.
+
+RESULT SUMMARY Hotfix 1:
+- **Actions Taken**:
+  - Investigated the search functionality and discovered that the `postMessage` calls in the main `WebView` were incorrectly changed to use `window.Android.postMessage` instead of `window.ReactNativeWebView.postMessage`.
+  - Corrected the `postMessage` calls in `getInitialResultsJs` and `getSlowLinkJs` to use `window.ReactNativeWebView.postMessage`.
+  - Removed the unused `downloadNowJs` script from the main `App.tsx` file.
+- **Reason for Actions**:
+  - The search functionality was broken because the main `WebView` was using the wrong `postMessage` interface, which is only intended for the overlay `WebView`.
+  - The `downloadNowJs` script was no longer needed in the main app component, as its functionality is now handled by the overlay.
+- **Desired Outcomes**:
+  - The search functionality should be restored and work as expected.
+  - The app should be free of unused code.

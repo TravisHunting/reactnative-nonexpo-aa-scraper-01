@@ -1,9 +1,10 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  DeviceEventEmitter,
   FlatList,
   Image,
   NativeModules,
@@ -18,7 +19,7 @@ import {
 import Toast from 'react-native-root-toast';
 import { WebView } from 'react-native-webview';
 
-const { FileDownloader } = NativeModules;
+const { FileDownloader, OverlayWindow } = NativeModules;
 
 function App() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,12 +27,16 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [scraping, setScraping] = useState(false);
   const [currentResultIndex, setCurrentResultIndex] = useState(0);
-  const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
-  const [isDownloadingFromUrl, setIsDownloadingFromUrl] = useState(false);
   const [clickedLinks, setClickedLinks] = useState<string[]>([]);
-  const [downloadInProgress, setDownloadInProgress] = useState(false);
   const webviewRef = useRef<WebView>(null);
   const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener('onMessage', handleMessage);
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   const handleSearch = () => {
     setLoading(true);
@@ -56,27 +61,22 @@ function App() {
         setScraping(false);
       }
     } else if (data.type === 'download-link') {
-      if (!downloadInProgress) {
-        setDownloadInProgress(true);
-        setIsDownloadingFromUrl(true);
-        setTimeout(() => downloadFile(data.payload), 1000);
-      }
+      downloadFile(data.payload);
+      OverlayWindow.shrinkOverlay();
     } else if (data.type === 'timer') {
-      setIsDownloadingFromUrl(true);
-      setTimeout(() => {
-        try {
-          Toast.show(`Download will be ready in ${data.payload} seconds`, {
-            duration: Toast.durations.LONG,
-            position: Toast.positions.CENTER,
-            shadow: true,
-            animation: true,
-            hideOnPress: true,
-            delay: 0,
-          });
-        } catch (e) {
-          console.error(e);
-        }
-      }, 1000);
+      OverlayWindow.shrinkOverlay();
+      try {
+        Toast.show(`Download will be ready in ${data.payload} seconds`, {
+          duration: 3000,
+          position: Toast.positions.BOTTOM,
+          shadow: true,
+          animation: true,
+          hideOnPress: true,
+          delay: 0,
+        });
+      } catch (e) {
+        console.error(e);
+      }
     }
   };
 
@@ -86,6 +86,9 @@ function App() {
       if (Platform.OS === 'android') {
         await FileDownloader.downloadFile(url, fileName);
         Toast.show(`Downloading ${fileName} to Downloads folder!`, { duration: Toast.durations.LONG });
+        setTimeout(() => {
+            OverlayWindow.destroyOverlay();
+        }, 5000);
       } else {
         // iOS implementation would go here
         Toast.show('Downloads are only supported on Android for now.');
@@ -93,6 +96,18 @@ function App() {
     } catch (error) {
       console.error(error);
       Toast.show('Download failed');
+    }
+  };
+
+  const handleSlowLinkPress = async (url: string) => {
+    if (Platform.OS === 'android') {
+        try {
+            await OverlayWindow.createOverlay(url);
+            setClickedLinks([...clickedLinks, url]);
+        } catch (e) {
+            console.error(e);
+            Toast.show('Failed to create overlay');
+        }
     }
   };
 
@@ -129,35 +144,7 @@ function App() {
     }
   `;
 
-  const downloadNowJs = `
-    const findDownloadLink = () => {
-      let downloadButton = document.querySelector('p.mb-4.text-xl.font-bold a');
-      if (downloadButton) {
-        return downloadButton.href;
-      }
-
-      return null;
-    }
-
-    const downloadInterval = setInterval(() => {
-      const downloadLink = findDownloadLink();
-      if (downloadLink) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: 'download-link',
-          payload: downloadLink
-        }));
-        clearInterval(downloadInterval);
-      }
-    }, 1000);
-
-    const timerInterval = setInterval(() => {
-      const timer = document.querySelector('span.js-partner-countdown');
-      if (timer) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'timer', payload: timer.innerText }));
-        clearInterval(timerInterval);
-      }
-    }, 1000);
-  `;
+  
 
   const styles = StyleSheet.create({
     container: {
@@ -200,103 +187,6 @@ function App() {
       color: 'purple',
     }
   });
-
-  if (selectedUrl) {
-    // When download is in progress, show the results list but keep WebView running hidden
-    if (isDownloadingFromUrl) {
-      return (
-        <ThemedView style={styles.container}>
-          <ThemedText type="title">Anna's Archive Search</ThemedText>
-          <View style={styles.searchContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter search term"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onSubmitEditing={handleSearch}
-              placeholderTextColor={Colors[colorScheme ?? 'light'].text}
-            />
-            <TouchableOpacity
-              style={{
-                backgroundColor: Colors[colorScheme ?? 'light'].tint,
-                paddingVertical: 10,
-                paddingHorizontal: 16,
-                borderRadius: 4,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-              onPress={handleSearch}
-            >
-              <Text style={{ color: Colors[colorScheme ?? 'light'].background, fontWeight: 'bold' }}>
-                Search
-              </Text>
-            </TouchableOpacity>
-          </View>
-          {results.length > 0 && (
-            <FlatList
-              data={results}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item }) => (
-                <View style={styles.resultItem}>
-                  {item.image ? (
-                    <Image source={{ uri: item.image }} style={styles.image} />
-                  ) : (
-                    <View style={[styles.image, { backgroundColor: 'white' }]} />
-                  )}
-                  <View style={styles.resultTextContainer}>
-                    <Text selectable={true} style={[styles.titleText, { color: Colors[colorScheme ?? 'light'].text }]}>{item.title}</Text>
-                    {item.slowLink ? (
-                      <TouchableOpacity onPress={() => {
-                        if (!downloadInProgress) {
-                          setSelectedUrl(item.slowLink);
-                          setClickedLinks([...clickedLinks, item.slowLink]);
-                          setIsDownloadingFromUrl(false);
-                        }
-                      }}>
-                        <Text selectable={true} style={[styles.link, clickedLinks.includes(item.slowLink) && styles.clickedLink]}>{item.slowLink}</Text>
-                      </TouchableOpacity>
-                    ) : (
-                      <ActivityIndicator color={Colors[colorScheme ?? 'light'].tint} />
-                    )}
-                  </View>
-                </View>
-              )}
-            />
-          )}
-          {/* Hidden WebView that continues running for download */}
-          <WebView
-            ref={webviewRef}
-            source={{ uri: selectedUrl }}
-            injectedJavaScript={downloadNowJs}
-            onMessage={handleMessage}
-            webviewDebuggingEnabled={true}
-            style={{ width: 0, height: 0, opacity: 0 }}
-          />
-        </ThemedView>
-      );
-    }
-    
-    // Normal WebView display when not downloading
-    return (
-      <View style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 40 : 16 }}>
-        <TouchableOpacity onPress={() => {
-          setSelectedUrl(null);
-          setIsDownloadingFromUrl(false);
-          setDownloadInProgress(false);
-        }}>
-          <Text style={{ color: Colors[colorScheme ?? 'light'].tint, padding: 10 }}>Close</Text>
-        </TouchableOpacity>
-
-        <WebView
-          ref={webviewRef}
-          source={{ uri: selectedUrl }}
-          injectedJavaScript={downloadNowJs}
-          onMessage={handleMessage}
-          webviewDebuggingEnabled={true}
-        />
-      </View>
-    );
-  }
 
   return (
     <ThemedView style={styles.container}>
@@ -341,10 +231,7 @@ function App() {
               <View style={styles.resultTextContainer}>
                 <Text selectable={true} style={[styles.titleText, { color: Colors[colorScheme ?? 'light'].text }]}>{item.title}</Text>
                 {item.slowLink ? (
-                  <TouchableOpacity onPress={() => {
-                    setSelectedUrl(item.slowLink);
-                    setClickedLinks([...clickedLinks, item.slowLink]);
-                  }}>
+                  <TouchableOpacity onPress={() => handleSlowLinkPress(item.slowLink)}>
                     <Text selectable={true} style={[styles.link, clickedLinks.includes(item.slowLink) && styles.clickedLink]}>{item.slowLink}</Text>
                   </TouchableOpacity>
                 ) : (
