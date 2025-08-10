@@ -227,3 +227,12 @@ After finalizing changes in a tsx file, make sure to assess the updated file for
 
 Complete the following tasks:
 
+Fix Bugs:
+The download function never triggers if the user navigates away from the app.
+In order to fix this, we're going to use a SYSTEM_ALERT_WINDOW overlay with a webview inside.
+This should allow the javascript loop inside the webview to keep running.
+When the user clicks the slow download link, do the following:
+1. Reset the app back to its original home screen, closing all webviews and preparing the app to be used again.
+2. Minimize the main app context, and open the slow download link in a webview in the system alert window.
+
+Once the user bypasses the cloudflare turnstile in the webview, and the timer or download link is detected, the alert window should shrink to a small square.
