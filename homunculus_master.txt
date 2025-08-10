@@ -7,6 +7,7 @@ Do this in such a way that proper conventions are used and so that anything that
 IMPORTANT: Do not introduce any dependencies on Expo.
 
 Store a brief summary of [actions taken, reason for actions, action outcomes] in scraper2/homunculus_master.txt, under the correct "RESULT SUMMARY" section for this prompt.
+IMPORTANT! Only append to homunculus_master.txt, never delete previous entries.
 
 RESULT SUMMARY # 1:
 RESULT SUMMARY:
@@ -26,3 +27,20 @@ RESULT SUMMARY:
   - The business logic from `scraper1` is now present in `scraper2`.
   - The `scraper2` app is now a non-Expo app with the same functionality as the `scraper1` app.
   - The `scraper2` project now has a more standard directory structure.
+
+PROMPT # 2:
+This is a React Native Android app.
+When this app is complete, it will function as a web scraper and download assistant for ebooks and audiobooks.
+Store a brief summary of [actions taken, reason for actions, action outcomes] in scraper2/homunculus_master.txt, under the correct "RESULT SUMMARY" section for this prompt.
+IMPORTANT! Only append to homunculus_master.txt, never delete previous entries.
+
+Complete the following tasks:
+
+1. Toast functionality is not working, and during my last test the "Download now" link was not successfully hit to begin the download.
+Are these issues related? Investigate and apply a fix.
+2. Use MediaStore API to save files into shared collections
+MediaStore is traditionally for media (images, audio, video), but starting in Android 11, it supports documents and downloads as well.
+Target the Downloads collection for these file downloads.
+
+
+
