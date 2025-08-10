@@ -1,3 +1,4 @@
+
 package com.scraper2
 
 import android.content.Context
@@ -26,14 +27,25 @@ class OverlayWindowModule(reactContext: ReactApplicationContext) : ReactContextB
     }
 
     @ReactMethod
-    fun createOverlay(url: String, promise: Promise) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(reactApplicationContext)) {
+    fun hasPermission(promise: Promise) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            promise.resolve(Settings.canDrawOverlays(reactApplicationContext))
+        } else {
+            promise.resolve(true)
+        }
+    }
+
+    @ReactMethod
+    fun requestPermission(promise: Promise) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + reactApplicationContext.packageName))
             reactApplicationContext.startActivityForResult(intent, 1234, null)
-            promise.reject("NO_PERMISSION", "No overlay permission")
-            return
         }
+        promise.resolve(null)
+    }
 
+    @ReactMethod
+    fun createOverlay(url: String, promise: Promise) {
         val layoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -75,8 +87,8 @@ class OverlayWindowModule(reactContext: ReactApplicationContext) : ReactContextB
     fun shrinkOverlay(promise: Promise) {
         if (overlayView != null) {
             val layoutParams = overlayView?.layoutParams as WindowManager.LayoutParams
-            layoutParams.width = 200
-            layoutParams.height = 200
+            layoutParams.width = 300
+            layoutParams.height = 300
             windowManager?.updateViewLayout(overlayView, layoutParams)
             promise.resolve(null)
         } else {

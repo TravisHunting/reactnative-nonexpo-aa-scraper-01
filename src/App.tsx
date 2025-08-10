@@ -8,6 +8,7 @@ import {
   FlatList,
   Image,
   NativeModules,
+  PermissionsAndroid,
   Platform,
   StyleSheet,
   Text,
@@ -44,6 +45,8 @@ function App() {
     setScraping(false);
   };
 
+  
+
   const handleMessage = (event: any) => {
     const data = JSON.parse(event.nativeEvent.data);
     if (data.type === 'initial-results') {
@@ -62,9 +65,9 @@ function App() {
       }
     } else if (data.type === 'download-link') {
       downloadFile(data.payload);
-      OverlayWindow.shrinkOverlay();
+      setTimeout(() => OverlayWindow.shrinkOverlay(), 1000);
     } else if (data.type === 'timer') {
-      OverlayWindow.shrinkOverlay();
+      setTimeout(() => OverlayWindow.shrinkOverlay(), 3000);
       try {
         Toast.show(`Download will be ready in ${data.payload} seconds`, {
           duration: 3000,
@@ -101,13 +104,20 @@ function App() {
 
   const handleSlowLinkPress = async (url: string) => {
     if (Platform.OS === 'android') {
-        try {
-            await OverlayWindow.createOverlay(url);
-            setClickedLinks([...clickedLinks, url]);
-        } catch (e) {
-            console.error(e);
-            Toast.show('Failed to create overlay');
-        }
+      const hasPermission = await OverlayWindow.hasPermission();
+      if (!hasPermission) {
+        await OverlayWindow.requestPermission();
+        Toast.show('Please grant overlay permission and try again.');
+        return;
+      }
+
+      try {
+          await OverlayWindow.createOverlay(url);
+          setClickedLinks([...clickedLinks, url]);
+      } catch (e) {
+          console.error(e);
+          Toast.show('Failed to create overlay');
+      }
     }
   };
 

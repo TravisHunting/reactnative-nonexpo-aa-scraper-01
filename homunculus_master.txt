@@ -268,7 +268,6 @@ RESULT SUMMARY Hotfix 1:
   - The search functionality should be restored and work as expected.
   - The app should be free of unused code.
 
-
 PROMPT # 8:
 This is a React Native Android app.
 When this app is complete, it will function as a web scraper and download assistant for ebooks and audiobooks.
@@ -281,3 +280,18 @@ Fix Bugs:
 The system alert overlay does not display the webview / does not appear on the screen.
 Make sure to appropriately size and place the overlay to allow the user to interact with the cloudflare turnstile if it appears.
 Make sure not to shrink the overlay prematurely.
+
+RESULT SUMMARY # 8:
+- **Actions Taken**:
+  - Implemented a new permission flow for the `SYSTEM_ALERT_WINDOW` permission, using a dedicated native method to check and request the permission.
+  - The React Native code now checks for the permission before creating the overlay and prompts the user to grant it if necessary.
+  - The size of the shrunken overlay has been increased to 300x300 to make it more visible.
+  - A delay has been added before the overlay is shrunk, to ensure that the user has time to see any messages displayed in the overlay.
+- **Reason for Actions**:
+  - The previous permission flow was not working correctly, preventing the overlay from being displayed.
+  - The shrunken overlay was too small to be easily noticed.
+  - The overlay was being shrunk too quickly, preventing the user from seeing important information.
+- **Desired Outcomes**:
+  - The overlay should now be displayed correctly, and the user should be able to grant the necessary permission.
+  - The shrunken overlay should be more visible and less likely to be missed by the user.
+  - The user should have enough time to read any messages displayed in the overlay before it is shrunk.
