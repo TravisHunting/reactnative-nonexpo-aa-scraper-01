@@ -95,7 +95,7 @@ RESULT SUMMARY # 3:
 PROMPT # 4:
 This is a React Native Android app.
 When this app is complete, it will function as a web scraper and download assistant for ebooks and audiobooks.
-Store a brief summary of [actions taken, reason for actions, action outcomes] in scraper2/homunculus_master.txt, under the correct "RESULT SUMMARY" section for this prompt.
+Append a brief summary of [actions taken, reason for actions, action outcomes] to scraper2/homunculus_master.txt, under the correct "RESULT SUMMARY" section for this prompt.
 
 Complete the following tasks:
 
