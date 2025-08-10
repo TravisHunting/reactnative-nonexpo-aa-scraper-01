@@ -5,6 +5,7 @@ import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
+import android.widget.Toast
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -21,7 +22,7 @@ class FileDownloaderModule(reactContext: ReactApplicationContext) : ReactContext
         try {
             val request = DownloadManager.Request(Uri.parse(url))
                 .setTitle(fileName)
-                .setDescription("Downloading")
+                .setDescription("Downloading from Anna's Archive")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
                 .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName)
                 .setAllowedOverMetered(true)
@@ -30,9 +31,12 @@ class FileDownloaderModule(reactContext: ReactApplicationContext) : ReactContext
             val downloadManager = reactApplicationContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             val downloadId = downloadManager.enqueue(request)
             
+            // Show a native toast to confirm download started
+            Toast.makeText(reactApplicationContext, "Download started: $fileName", Toast.LENGTH_LONG).show()
+            
             promise.resolve(downloadId.toString())
         } catch (e: Exception) {
-            promise.reject("DOWNLOAD_ERROR", e)
+            promise.reject("DOWNLOAD_ERROR", e.message)
         }
     }
 }
