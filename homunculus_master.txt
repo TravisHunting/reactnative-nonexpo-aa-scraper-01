@@ -267,3 +267,17 @@ RESULT SUMMARY Hotfix 1:
 - **Desired Outcomes**:
   - The search functionality should be restored and work as expected.
   - The app should be free of unused code.
+
+
+PROMPT # 8:
+This is a React Native Android app.
+When this app is complete, it will function as a web scraper and download assistant for ebooks and audiobooks.
+Append a brief summary of [actions taken, reason for actions, desired outcomes] to scraper2/homunculus_master.txt, under the correct "RESULT SUMMARY" section for this prompt.
+After finalizing changes in a tsx file, make sure to assess the updated file for syntatic correctness.
+
+Complete the following tasks:
+
+Fix Bugs:
+The system alert overlay does not display the webview / does not appear on the screen.
+Make sure to appropriately size and place the overlay to allow the user to interact with the cloudflare turnstile if it appears.
+Make sure not to shrink the overlay prematurely.
