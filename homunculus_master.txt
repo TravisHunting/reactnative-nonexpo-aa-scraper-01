@@ -295,3 +295,16 @@ RESULT SUMMARY # 8:
   - The overlay should now be displayed correctly, and the user should be able to grant the necessary permission.
   - The shrunken overlay should be more visible and less likely to be missed by the user.
   - The user should have enough time to read any messages displayed in the overlay before it is shrunk.
+
+PROMPT # 9:
+This is a React Native Android app.
+When this app is complete, it will function as a web scraper and download assistant for ebooks and audiobooks.
+Append a brief summary of [actions taken, reason for actions, desired outcomes] to scraper2/homunculus_master.txt, under the correct "RESULT SUMMARY" section for this prompt.
+After finalizing changes in a tsx file, make sure to assess the updated file for syntatic correctness.
+
+Complete the following tasks:
+
+Fix Bugs:
+I am attempting to use a system overlay to display the webview in which the user will bypass a cloudflare turnstile.
+This overlay is not appearing on the screen.
+It may be possible that the app is clearing its state, resetting, and minimizing itself prematurely, preventing the overlay from loading. Investigate this possibility.
